@@ -39,23 +39,32 @@ export async function postTransaction(req, res) {
   }
 }
 
-export async function deleteTransactionByUserId(req, res) {
+export async function deleteTransactionById(req, res) {
   try {
-    const { user_id } = req.params;
+    const { id } = req.params;
+
+    console.log("═══════════════════════════════");
+    console.log("DELETE Request received");
+    console.log("Transaction ID:", id);
+    console.log("═══════════════════════════════");
+
     const deletedTransaction = await sql`
-          DELETE FROM transactions WHERE user_id = ${user_id} RETURNING *
-        `;
+      DELETE FROM transactions WHERE id = ${id} RETURNING *
+    `;
 
     if (deletedTransaction.length === 0) {
+      console.log("❌ Transaction not found with ID:", id);
       return res.status(404).json({ message: "Transaction not found" });
     }
+
+    console.log("✅ Transaction deleted:", deletedTransaction[0]);
 
     res.status(200).json({
       message: "Transaction deleted successfully",
       data: deletedTransaction[0],
     });
   } catch (error) {
-    console.error("Error deleting transaction:", error);
+    console.error("❌ Error deleting transaction:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 }
