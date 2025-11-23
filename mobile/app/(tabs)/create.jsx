@@ -1,25 +1,34 @@
-// mobile/app/(root)/create.jsx
-import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import { useUser } from '@clerk/clerk-expo';
-import { useTransaction } from '../../hooks/useTransaction';
+// mobile/app/%28tabs%29/create.jsx
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import React, { useState } from "react";
+import { useUser } from "@clerk/clerk-expo";
+import { useTransaction } from "../../hooks/useTransaction";
 
 const CATEGORIES = [
-  { name: 'Salary', icon: 'cash', type: 'income' },
-  { name: 'Freelance', icon: 'laptop', type: 'income' },
-  { name: 'Business', icon: 'briefcase', type: 'income' },
-  { name: 'Investment', icon: 'trending-up', type: 'income' },
-  { name: 'Food', icon: 'restaurant', type: 'expense' },
-  { name: 'Transport', icon: 'car', type: 'expense' },
-  { name: 'Shopping', icon: 'cart', type: 'expense' },
-  { name: 'Bills', icon: 'receipt', type: 'expense' },
-  { name: 'Entertainment', icon: 'game-controller', type: 'expense' },
-  { name: 'Health', icon: 'medkit', type: 'expense' },
-  { name: 'Education', icon: 'school', type: 'expense' },
-  { name: 'Other', icon: 'ellipsis-horizontal', type: 'both' },
+  { name: "Salary", icon: "cash", type: "income" },
+  { name: "Freelance", icon: "laptop", type: "income" },
+  { name: "Business", icon: "briefcase", type: "income" },
+  { name: "Investment", icon: "trending-up", type: "income" },
+  { name: "Food", icon: "restaurant", type: "expense" },
+  { name: "Transport", icon: "car", type: "expense" },
+  { name: "Shopping", icon: "cart", type: "expense" },
+  { name: "Bills", icon: "receipt", type: "expense" },
+  { name: "Entertainment", icon: "game-controller", type: "expense" },
+  { name: "Health", icon: "medkit", type: "expense" },
+  { name: "Education", icon: "school", type: "expense" },
+  { name: "Other", icon: "ellipsis-horizontal", type: "both" },
 ];
 
 const Create = () => {
@@ -27,33 +36,34 @@ const Create = () => {
   const { user } = useUser();
   const { createTransaction } = useTransaction({ userId: user?.id });
 
-  const [title, setTitle] = useState('');
-  const [amount, setAmount] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [transactionType, setTransactionType] = useState('expense'); // 'income' or 'expense'
+  const [title, setTitle] = useState("");
+  const [amount, setAmount] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [transactionType, setTransactionType] = useState("expense"); // 'income' or 'expense'
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     // Validation
     if (!title.trim()) {
-      Alert.alert('Error', 'Please enter a title');
+      Alert.alert("Error", "Please enter a title");
       return;
     }
     if (!amount || isNaN(amount) || Number(amount) <= 0) {
-      Alert.alert('Error', 'Please enter a valid amount');
+      Alert.alert("Error", "Please enter a valid amount");
       return;
     }
     if (!selectedCategory) {
-      Alert.alert('Error', 'Please select a category');
+      Alert.alert("Error", "Please select a category");
       return;
     }
 
     setLoading(true);
 
     // Convert amount to positive/negative based on type
-    const finalAmount = transactionType === 'income' 
-      ? Math.abs(Number(amount)) 
-      : -Math.abs(Number(amount));
+    const finalAmount =
+      transactionType === "income"
+        ? Math.abs(Number(amount))
+        : -Math.abs(Number(amount));
 
     const success = await createTransaction({
       title: title.trim(),
@@ -64,29 +74,32 @@ const Create = () => {
     setLoading(false);
 
     if (success) {
-      // Navigate back to home
-      router.back();
+      /// Clear form
+      setTitle("");
+      setAmount("");
+      setSelectedCategory("");
+      setTransactionType("expense");
+
+      // Navigate to home tab
+      router.push("/(tabs)/index");
     }
   };
 
   const filteredCategories = CATEGORIES.filter(
-    cat => cat.type === transactionType || cat.type === 'both'
+    (cat) => cat.type === transactionType || cat.type === "both"
   );
 
   return (
     <SafeAreaView className="flex-1 bg-[#FFF8F3]">
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
         <ScrollView showsVerticalScrollIndicator={false}>
           <View className="p-6">
             {/* Header */}
             <View className="flex-row items-center mb-6">
-              <TouchableOpacity
-                onPress={() => router.back()}
-                className="mr-4"
-              >
+              <TouchableOpacity onPress={() => router.back()} className="mr-4">
                 <Ionicons name="arrow-back" size={24} color="#4A3428" />
               </TouchableOpacity>
               <Text className="text-2xl font-bold text-[#4A3428]">
@@ -97,32 +110,36 @@ const Create = () => {
             {/* Transaction Type Toggle */}
             <View className="flex-row mb-6">
               <TouchableOpacity
-                onPress={() => setTransactionType('expense')}
+                onPress={() => setTransactionType("expense")}
                 className={`flex-1 p-4 rounded-l-2xl border-2 ${
-                  transactionType === 'expense'
-                    ? 'bg-[#E74C3C] border-[#E74C3C]'
-                    : 'bg-white border-[#E5D3B7]'
+                  transactionType === "expense"
+                    ? "bg-[#E74C3C] border-[#E74C3C]"
+                    : "bg-white border-[#E5D3B7]"
                 }`}
               >
                 <Text
                   className={`text-center font-semibold ${
-                    transactionType === 'expense' ? 'text-white' : 'text-[#4A3428]'
+                    transactionType === "expense"
+                      ? "text-white"
+                      : "text-[#4A3428]"
                   }`}
                 >
                   Expense
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => setTransactionType('income')}
+                onPress={() => setTransactionType("income")}
                 className={`flex-1 p-4 rounded-r-2xl border-2 ${
-                  transactionType === 'income'
-                    ? 'bg-[#2ECC71] border-[#2ECC71]'
-                    : 'bg-white border-[#E5D3B7]'
+                  transactionType === "income"
+                    ? "bg-[#2ECC71] border-[#2ECC71]"
+                    : "bg-white border-[#E5D3B7]"
                 }`}
               >
                 <Text
                   className={`text-center font-semibold ${
-                    transactionType === 'income' ? 'text-white' : 'text-[#4A3428]'
+                    transactionType === "income"
+                      ? "text-white"
+                      : "text-[#4A3428]"
                   }`}
                 >
                   Income
@@ -177,20 +194,24 @@ const Create = () => {
                     onPress={() => setSelectedCategory(category.name)}
                     className={`w-[30%] mr-[3.33%] mb-3 p-4 rounded-2xl border-2 items-center ${
                       selectedCategory === category.name
-                        ? 'bg-[#8B593E] border-[#8B593E]'
-                        : 'bg-white border-[#E5D3B7]'
+                        ? "bg-[#8B593E] border-[#8B593E]"
+                        : "bg-white border-[#E5D3B7]"
                     }`}
                   >
                     <Ionicons
                       name={category.icon}
                       size={28}
-                      color={selectedCategory === category.name ? '#FFF8F3' : '#8B593E'}
+                      color={
+                        selectedCategory === category.name
+                          ? "#FFF8F3"
+                          : "#8B593E"
+                      }
                     />
                     <Text
                       className={`mt-2 text-xs font-semibold ${
                         selectedCategory === category.name
-                          ? 'text-white'
-                          : 'text-[#4A3428]'
+                          ? "text-white"
+                          : "text-[#4A3428]"
                       }`}
                     >
                       {category.name}
@@ -204,10 +225,12 @@ const Create = () => {
             <TouchableOpacity
               onPress={handleSubmit}
               disabled={loading}
-              className={`bg-[#8B593E] rounded-2xl p-4 ${loading ? 'opacity-50' : ''}`}
+              className={`bg-[#8B593E] rounded-2xl p-4 ${
+                loading ? "opacity-50" : ""
+              }`}
             >
               <Text className="text-white text-center font-bold text-lg">
-                {loading ? 'Creating...' : 'Add Transaction'}
+                {loading ? "Creating..." : "Add Transaction"}
               </Text>
             </TouchableOpacity>
           </View>

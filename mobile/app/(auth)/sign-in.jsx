@@ -1,3 +1,4 @@
+// mobile/app/%28auth%29/sign-in.jsx
 import { useSignIn } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import {
