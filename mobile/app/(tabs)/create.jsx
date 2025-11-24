@@ -10,7 +10,7 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { useUser } from "@clerk/clerk-expo";
@@ -233,6 +233,12 @@ const Create = () => {
                 {loading ? "Creating..." : "Add Transaction"}
               </Text>
             </TouchableOpacity>
+
+            <Link href="/about" asChild>
+              <TouchableOpacity className="mt-4 bg-[#E5D3B7] px-4 py-3 rounded-2xl items-center">
+                <Text className="text-[#4A3428] font-semibold">About</Text>
+              </TouchableOpacity>
+            </Link>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
