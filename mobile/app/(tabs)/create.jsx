@@ -234,11 +234,7 @@ const Create = () => {
               </Text>
             </TouchableOpacity>
 
-            <Link href="/about" asChild>
-              <TouchableOpacity className="mt-4 bg-[#E5D3B7] px-4 py-3 rounded-2xl items-center">
-                <Text className="text-[#4A3428] font-semibold">About</Text>
-              </TouchableOpacity>
-            </Link>
+            
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -1,111 +1,134 @@
-// mobile/app/%28auth%29/sign-up.jsx
-import * as React from 'react'
-import { Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { useSignUp } from '@clerk/clerk-expo'
-import { Link, useRouter } from 'expo-router'
+// mobile/app/(auth)/sign-up.jsx
+import * as React from "react";
+import { Text, TextInput, TouchableOpacity, View, ScrollView, KeyboardAvoidingView, Platform, Alert } from "react-native";
+import { useSignUp } from "@clerk/clerk-expo";
+import { Link, useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SignUpScreen() {
-  const { isLoaded, signUp, setActive } = useSignUp()
-  const router = useRouter()
+  const { isLoaded, signUp, setActive } = useSignUp();
+  const router = useRouter();
 
-  const [emailAddress, setEmailAddress] = React.useState('')
-  const [password, setPassword] = React.useState('')
-  const [pendingVerification, setPendingVerification] = React.useState(false)
-  const [code, setCode] = React.useState('')
+  const [emailAddress, setEmailAddress] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [pendingVerification, setPendingVerification] = React.useState(false);
+  const [code, setCode] = React.useState("");
 
-  // Handle submission of sign-up form
   const onSignUpPress = async () => {
-    if (!isLoaded) return
+    if (!isLoaded) return;
 
-    // Start sign-up process using email and password provided
-    try {
-      await signUp.create({
-        emailAddress,
-        password,
-      })
-
-      // Send user an email with verification code
-      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
-
-      // Set 'pendingVerification' to true to display second form
-      // and capture OTP code
-      setPendingVerification(true)
-    } catch (err) {
-      // See https://clerk.com/docs/custom-flows/error-handling
-      // for more info on error handling
-      console.error(JSON.stringify(err, null, 2))
+    if (!emailAddress || !password) {
+      Alert.alert("Error", "Please enter email and password");
+      return;
     }
-  }
-
-  // Handle submission of verification form
-  const onVerifyPress = async () => {
-    if (!isLoaded) return
 
     try {
-      // Use the code the user provided to attempt verification
-      const signUpAttempt = await signUp.attemptEmailAddressVerification({
-        code,
-      })
+      await signUp.create({ emailAddress, password });
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      setPendingVerification(true);
+    } catch (err) {
+      console.error(JSON.stringify(err, null, 2));
+      Alert.alert("Error", "Sign-up failed. Try again.");
+    }
+  };
 
-      // If verification was completed, set the session to active
-      // and redirect the user
-      if (signUpAttempt.status === 'complete') {
-        await setActive({ session: signUpAttempt.createdSessionId })
-        router.replace('/')
+  const onVerifyPress = async () => {
+    if (!isLoaded) return;
+
+    try {
+      const signUpAttempt = await signUp.attemptEmailAddressVerification({ code });
+      if (signUpAttempt.status === "complete") {
+        await setActive({ session: signUpAttempt.createdSessionId });
+        router.replace("/");
       } else {
-        // If the status is not complete, check why. User may need to
-        // complete further steps.
-        console.error(JSON.stringify(signUpAttempt, null, 2))
+        console.error(JSON.stringify(signUpAttempt, null, 2));
+        Alert.alert("Error", "Verification incomplete");
       }
     } catch (err) {
-      // See https://clerk.com/docs/custom-flows/error-handling
-      // for more info on error handling
-      console.error(JSON.stringify(err, null, 2))
+      console.error(JSON.stringify(err, null, 2));
+      Alert.alert("Error", "Verification failed");
     }
-  }
+  };
 
   if (pendingVerification) {
     return (
-      <>
-        <Text>Verify your email</Text>
-        <TextInput
-          value={code}
-          placeholder="Enter your verification code"
-          onChangeText={(code) => setCode(code)}
-        />
-        <TouchableOpacity onPress={onVerifyPress}>
-          <Text>Verify</Text>
-        </TouchableOpacity>
-      </>
-    )
+      <SafeAreaView className="flex-1 bg-[#FFF8F3]">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          className="flex-1 justify-center items-center px-6"
+        >
+          <View className="w-full max-w-md">
+            <Text className="text-2xl font-bold text-[#4A3428] mb-6 text-center">Verify Your Email</Text>
+            <TextInput
+              value={code}
+              placeholder="Enter verification code"
+              onChangeText={setCode}
+              className="bg-white border-2 border-[#E5D3B7] rounded-xl p-4 mb-6 text-[#4A3428]"
+              keyboardType="number-pad"
+            />
+            <TouchableOpacity
+              onPress={onVerifyPress}
+              className="bg-[#8B593E] rounded-2xl p-4 mb-4 items-center"
+            >
+              <Text className="text-white font-bold text-lg">Verify</Text>
+            </TouchableOpacity>
+            <Link href="/sign-in" asChild>
+              <TouchableOpacity className="bg-[#E5D3B7] rounded-2xl p-4 items-center">
+                <Text className="text-[#4A3428] font-semibold">Back to Sign In</Text>
+              </TouchableOpacity>
+            </Link>
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    );
   }
 
   return (
-    <View>
-      <>
-        <Text>Sign up</Text>
-        <TextInput
-          autoCapitalize="none"
-          value={emailAddress}
-          placeholder="Enter email"
-          onChangeText={(email) => setEmailAddress(email)}
-        />
-        <TextInput
-          value={password}
-          placeholder="Enter password"
-          secureTextEntry={true}
-          onChangeText={(password) => setPassword(password)}
-        />
-        <TouchableOpacity onPress={onSignUpPress}>
-          <Text>Continue</Text>
-        </TouchableOpacity>
-        <View style={{ display: 'flex', flexDirection: 'row', gap: 3 }}>
-          <Text>Already have an account?</Text>
-          <Link href="/sign-in">
-            <Text>Sign in</Text>
-          </Link>
+    <SafeAreaView className="flex-1 bg-[#FFF8F3]">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        className="flex-1 justify-center items-center px-6"
+      >
+        <View className="w-full max-w-md">
+          <Text className="text-3xl font-bold text-[#4A3428] mb-8 text-center">Sign Up</Text>
+
+          {/* Email Input */}
+          <Text className="text-[#4A3428] font-semibold mb-2">Email</Text>
+          <TextInput
+            value={emailAddress}
+            placeholder="Enter your email"
+            onChangeText={setEmailAddress}
+            autoCapitalize="none"
+            className="bg-white border-2 border-[#E5D3B7] rounded-xl p-4 mb-6 text-[#4A3428]"
+          />
+
+          {/* Password Input */}
+          <Text className="text-[#4A3428] font-semibold mb-2">Password</Text>
+          <TextInput
+            value={password}
+            placeholder="Enter your password"
+            secureTextEntry
+            onChangeText={setPassword}
+            className="bg-white border-2 border-[#E5D3B7] rounded-xl p-4 mb-6 text-[#4A3428]"
+          />
+
+          {/* Sign Up Button */}
+          <TouchableOpacity
+            onPress={onSignUpPress}
+            className="bg-[#8B593E] rounded-2xl p-4 mb-4 items-center"
+          >
+            <Text className="text-white font-bold text-lg">Continue</Text>
+          </TouchableOpacity>
+
+          {/* Sign In Link */}
+          <View className="flex-row justify-center mt-2">
+            <Text className="text-[#4A3428] mr-1">Already have an account?</Text>
+            <Link href="/sign-in">
+              <Text className="text-[#8B593E] font-semibold">Sign In</Text>
+            </Link>
+          </View>
         </View>
-      </>
-    </View>
-  )
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
 }
